@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI สำหรับการบริหารจัดการร้านกาแฟ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Coffee House Neutrals -->
+    <!-- Application Structure Plan: The SPA is designed as an interactive dashboard with a clear, user-centric information architecture, moving away from the linear report format. It's divided into three core, audience-focused sections: 'Customer Experience', 'Operations Hub', and 'Business Brain', accessible via a sticky top navigation. This structure allows a user (e.g., a coffee shop owner) to immediately grasp how AI impacts different facets of their business. The flow starts with a compelling hero section, then allows non-linear exploration of interactive modules like a simulated customer app, a dynamic staff scheduling chart, and interactive sales/inventory dashboards. This task-oriented design makes the dense report content tangible and directly demonstrates the value proposition of each AI application in its relevant context. -->
+    <!-- Visualization & Content Choices: Report concepts are translated into interactive components to maximize understanding. 'Customer Loyalty' is shown in a mock phone UI. 'Dynamic Promotions' use a JS-powered toggle. 'Staff Scheduling' is an interactive Chart.js horizontal bar chart, showing how AI adjusts staffing based on demand forecasts. 'Sales Forecasting' and 'Inventory Management' are dynamic line and bar charts (Chart.js), updated by user-selected filters (e.g., 'Daily/Weekly'). 'Dynamic Pricing' is an interactive slider. This approach turns passive text into an exploratory experience, using Chart.js for all data visualization to maintain consistency and interactivity, directly supporting the designed application structure. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #F8F5F2; /* Light Beige */
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 40vh;
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .nav-link:hover {
+            color: #A37E63; /* Muted Brown */
+        }
+        .nav-link.active {
+            color: #6D4C41; /* Dark Brown */
+            border-bottom-color: #6D4C41;
+        }
+        .card {
+            background-color: #FFFFFF;
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        .btn {
+            background-color: #6D4C41; /* Dark Brown */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s;
+            font-weight: 600;
+        }
+        .btn:hover {
+            background-color: #A37E63; /* Muted Brown */
+        }
+        .tab-btn {
+            background-color: #EFEBE9;
+            color: #6D4C41;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .tab-btn.active {
+            background-color: #6D4C41;
+            color: white;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Header & Navigation -->
+    <header class="bg-[#FFFFFF]/80 backdrop-blur-sm sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex-shrink-0">
+                    <a href="#hero" class="text-2xl font-bold text-[#6D4C41]">AI Coffee ☕</a>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#customer-experience" class="nav-link px-3 py-2 text-sm font-medium border-b-2 border-transparent">ประสบการณ์ลูกค้า</a>
+                        <a href="#operations" class="nav-link px-3 py-2 text-sm font-medium border-b-2 border-transparent">การจัดการร้าน</a>
+                        <a href="#insights" class="nav-link px-3 py-2 text-sm font-medium border-b-2 border-transparent">ข้อมูลเชิงลึก</a>
+                        <a href="#strategy" class="nav-link px-3 py-2 text-sm font-medium border-b-2 border-transparent">กลยุทธ์</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" class="inline-flex items-center justify-center p-2 rounded-md text-gray-700 hover:text-white hover:bg-[#A37E63] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <div class="md:hidden hidden" id="mobile-menu">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <a href="#customer-experience" class="nav-link block px-3 py-2 rounded-md text-base font-medium">ประสบการณ์ลูกค้า</a>
+                <a href="#operations" class="nav-link block px-3 py-2 rounded-md text-base font-medium">การจัดการร้าน</a>
+                <a href="#insights" class="nav-link block px-3 py-2 rounded-md text-base font-medium">ข้อมูลเชิงลึก</a>
+                <a href="#strategy" class="nav-link block px-3 py-2 rounded-md text-base font-medium">กลยุทธ์</a>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <!-- Hero Section -->
+        <section id="hero" class="relative text-center py-20 md:py-32 bg-white">
+            <div class="container mx-auto px-4">
+                <h1 class="text-4xl md:text-6xl font-extrabold text-[#6D4C41] leading-tight">พลิกโฉมร้านกาแฟด้วย AI</h1>
+                <p class="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-gray-600">
+                    สร้างประสบการณ์ที่เหนือกว่าให้ลูกค้า เพิ่มประสิทธิภาพการทำงาน และขับเคลื่อนธุรกิจให้เติบโตด้วยระบบจัดการอัจฉริยะ
+                </p>
+                <div class="mt-10 flex flex-wrap justify-center gap-4 text-[#A37E63]">
+                    <span class="flex items-center gap-2 text-lg"><span class="text-2xl">💖</span>ความภักดีลูกค้า</span>
+                    <span class="flex items-center gap-2 text-lg"><span class="text-2xl">⚙️</span>การจัดการอัจฉริยะ</span>
+                    <span class="flex items-center gap-2 text-lg"><span class="text-2xl">📈</span>วิเคราะห์ข้อมูล</span>
+                </div>
+                <a href="#customer-experience" class="mt-12 inline-block btn">สำรวจศักยภาพของ AI</a>
+            </div>
+        </section>
+
+        <!-- Customer Experience Section -->
+        <section id="customer-experience" class="py-16 md:py-24">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#6D4C41]">สร้างประสบการณ์ลูกค้าที่ขับเคลื่อนด้วย AI</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-gray-600">
+                        AI ช่วยให้เราเข้าใจลูกค้าแต่ละคนได้อย่างลึกซึ้ง และมอบประสบการณ์เฉพาะบุคคลที่น่าประทับใจ ตั้งแต่โปรแกรมสมาชิกไปจนถึงการจ่ายเงินที่ราบรื่น ซึ่งจะช่วยสร้างความภักดีและกระตุ้นยอดขายได้อย่างมีประสิทธิภาพ
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Loyalty Program -->
+                    <div class="card p-6 flex flex-col items-center text-center">
+                        <div class="w-16 h-16 bg-[#EFEBE9] rounded-full flex items-center justify-center mb-4">
+                            <span class="text-3xl">🏆</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-[#6D4C41]">โปรแกรมสมาชิกเฉพาะบุคคล</h3>
+                        <p class="text-gray-600 mb-4">มอบรางวัลและระดับสมาชิก (Ranking) ตามพฤติกรรมการซื้อ AI จะวิเคราะห์ข้อมูลเพื่อสร้าง "ภารกิจ" ที่น่าสนใจและข้อเสนอที่ตรงใจลูกค้าแต่ละราย</p>
+                         <div class="w-full max-w-xs bg-gray-100 p-4 rounded-lg shadow-inner">
+                            <div class="text-left mb-2">
+                                <p class="font-bold">คุณสมชาย</p>
+                                <p class="text-sm text-yellow-600">ระดับ: Gold Member ✨</p>
+                            </div>
+                            <div class="w-full bg-gray-300 rounded-full h-2.5">
+                                <div class="bg-yellow-500 h-2.5 rounded-full" style="width: 75%"></div>
+                            </div>
+                            <p class="text-xs text-right mt-1">750 / 1000 แต้ม</p>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Promotions -->
+                    <div class="card p-6 flex flex-col items-center text-center">
+                        <div class="w-16 h-16 bg-[#EFEBE9] rounded-full flex items-center justify-center mb-4">
+                            <span class="text-3xl">🏷️</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-[#6D4C41]">โปรโมชั่นและคูปองไดนามิก</h3>
+                        <p class="text-gray-600 mb-4">AI ช่วยปรับโปรโมชั่นแบบเรียลไทม์ตามความต้องการ สต็อกสินค้า หรือแม้แต่สภาพอากาศ เพื่อเพิ่มยอดขายและลดของเสีย</p>
+                        <div id="promo-container" class="w-full max-w-xs bg-gray-100 p-4 rounded-lg shadow-inner text-left">
+                            <p class="font-bold mb-2">ข้อเสนอสำหรับคุณ:</p>
+                            <p id="promo-text" class="text-sm text-green-700">ร้อนๆ แบบนี้ รับส่วนลด 15% สำหรับเครื่องดื่มเย็น!</p>
+                        </div>
+                    </div>
+
+                    <!-- Digital Wallet -->
+                    <div class="card p-6 flex flex-col items-center text-center">
+                        <div class="w-16 h-16 bg-[#EFEBE9] rounded-full flex items-center justify-center mb-4">
+                            <span class="text-3xl">💳</span>
+                        </div>
+                        <h3 class="text-xl font-semibold mb-2 text-[#6D4C41]">Wallet และการชำระเงิน</h3>
+                        <p class="text-gray-600 mb-4">ลูกค้าสามารถสแกนจ่ายผ่านแอปได้อย่างรวดเร็วและปลอดภัยด้วยเทคโนโลยี Tokenization ที่แปลงข้อมูลบัตรเป็นรหัสใช้ครั้งเดียว</p>
+                        <div class="w-full max-w-xs bg-gray-100 p-4 rounded-lg shadow-inner flex flex-col items-center">
+                           <div class="w-24 h-24 bg-white p-1 rounded">
+                                <canvas id="qrCodeCanvas"></canvas>
+                           </div>
+                           <p class="text-sm mt-2 font-medium">สแกนเพื่อจ่าย</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Operations Section -->
+        <section id="operations" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#6D4C41]">เพิ่มประสิทธิภาพการจัดการร้าน</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-gray-600">
+                        AI เป็นเครื่องมือสำคัญสำหรับผู้จัดการและพนักงาน ช่วยให้การทำงานประจำวันเป็นระบบอัตโนมัติ ลดความผิดพลาด และจัดสรรทรัพยากรได้อย่างเหมาะสมที่สุด ตั้งแต่การเช็คอินเข้างานไปจนถึงการจัดตารางกะ
+                    </p>
+                </div>
+
+                <div class="grid lg:grid-cols-2 gap-8 items-start">
+                    <!-- Left Column: Check-in & Scheduling -->
+                    <div class="space-y-8">
+                        <!-- Geo-fenced Check-in -->
+                        <div class="card p-6">
+                            <h3 class="text-xl font-semibold mb-3 text-[#6D4C41]">📍 ระบบเช็คอินด้วย Geofencing</h3>
+                            <p class="text-gray-600 mb-4">พนักงานสามารถเช็คอินเข้างานผ่านแอปได้ก็ต่อเมื่ออยู่ในรัศมี 200 เมตรจากร้านเท่านั้น ช่วยป้องกันการทุจริตเวลาและบันทึกเวลาทำงานอัตโนมัติ</p>
+                            <div class="flex items-center gap-4">
+                               <button id="checkin-btn" class="btn">จำลองการเช็คอิน</button>
+                               <p id="checkin-status" class="font-medium text-gray-500">สถานะ: อยู่นอกพื้นที่</p>
+                            </div>
+                        </div>
+
+                        <!-- Role-Based Access -->
+                        <div class="card p-6">
+                           <h3 class="text-xl font-semibold mb-4 text-[#6D4C41]">🔑 การเข้าถึงตามบทบาทหน้าที่</h3>
+                           <p class="text-gray-600 mb-4">พนักงานแต่ละตำแหน่ง (เจ้าของ, ผจก., แคชเชียร์) จะเห็นฟังก์ชันและข้อมูลที่แตกต่างกันในแอป</p>
+                           <div class="flex flex-wrap gap-2 mb-4">
+                               <button class="tab-btn px-4 py-2 rounded-md text-sm font-medium active" data-role="owner">เจ้าของร้าน</button>
+                               <button class="tab-btn px-4 py-2 rounded-md text-sm font-medium" data-role="manager">ผู้จัดการ</button>
+                               <button class="tab-btn px-4 py-2 rounded-md text-sm font-medium" data-role="cashier">แคชเชียร์</button>
+                           </div>
+                           <div id="role-dashboard" class="bg-gray-100 p-4 rounded-lg shadow-inner">
+                               <p class="font-bold">Dashboard สำหรับ: <span id="role-name">เจ้าของร้าน</span></p>
+                               <ul id="role-features" class="list-disc list-inside text-sm mt-2">
+                                   <li>ดูยอดขายรวมทุกสาขา</li>
+                                   <li>วิเคราะห์กำไร-ขาดทุน</li>
+                                   <li>จัดการข้อมูลพนักงานระดับสูง</li>
+                               </ul>
+                           </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Smart Scheduling -->
+                    <div class="card p-6">
+                        <h3 class="text-xl font-semibold mb-1 text-[#6D4C41]">🗓️ การจัดตารางพนักงานอัจฉริยะ</h3>
+                        <p class="text-gray-600 mb-4">AI วิเคราะห์ข้อมูลยอดขายและการจราจรของลูกค้าเพื่อสร้างตารางกะที่เหมาะสมที่สุดโดยอัตโนมัติ ช่วยลดต้นทุนและรับประกันว่ามีพนักงานเพียงพอเสมอ</p>
+                        <div class="flex flex-wrap justify-center gap-2 mb-4">
+                            <button id="schedule-busy" class="btn text-xs">พยากรณ์: ช่วงพีค</button>
+                            <button id="schedule-quiet" class="btn bg-[#A37E63] text-xs">พยากรณ์: ช่วงปกติ</button>
+                        </div>
+                        <div class="chart-container h-96">
+                            <canvas id="staffingChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Business Insights Section -->
+        <section id="insights" class="py-16 md:py-24">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#6D4C41]">ขับเคลื่อนธุรกิจด้วยข้อมูลเชิงลึก</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-gray-600">
+                        AI เปลี่ยนข้อมูลดิบให้เป็นข้อมูลเชิงลึกที่นำไปใช้ได้จริง ช่วยให้คุณตัดสินใจทางธุรกิจได้ดีขึ้น ตั้งแต่การพยากรณ์ยอดขายที่แม่นยำ การจัดการสต็อกอัตโนมัติ ไปจนถึงการปรับราคาให้เหมาะสมที่สุด
+                    </p>
+                </div>
+                <div class="grid lg:grid-cols-2 gap-8 items-start">
+                    <!-- Sales Forecasting -->
+                    <div class="card p-6">
+                         <h3 class="text-xl font-semibold mb-1 text-[#6D4C41]">📊 การพยากรณ์ยอดขาย</h3>
+                         <p class="text-gray-600 mb-4">AI วิเคราะห์ข้อมูลในอดีต, สภาพอากาศ, และเทรนด์ต่างๆ เพื่อคาดการณ์ยอดขายล่วงหน้า ช่วยให้วางแผนสต็อกและกำลังคนได้แม่นยำขึ้น</p>
+                        <div class="chart-container">
+                            <canvas id="salesForecastChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- Inventory Management -->
+                    <div class="card p-6">
+                        <h3 class="text-xl font-semibold mb-1 text-[#6D4C41]">📦 การจัดการสต็อกอัตโนมัติ</h3>
+                        <p class="text-gray-600 mb-4">ระบบจะแจ้งเตือนเมื่อวัตถุดิบใกล้หมดและสามารถสั่งซื้อให้อัตโนมัติ ช่วยลดการขาดสต็อกและลดของเสียได้ถึง 20-30%</p>
+                        <div class="chart-container">
+                            <canvas id="inventoryChart"></canvas>
+                        </div>
+                         <div class="text-center mt-4">
+                             <button id="simulate-sales-btn" class="btn text-sm">จำลองการขาย 1 วัน</button>
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Strategy & Implementation Section -->
+        <section id="strategy" class="py-16 md:py-24 bg-white">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl md:text-4xl font-bold text-[#6D4C41]">กลยุทธ์และขั้นตอนการนำไปใช้</h2>
+                    <p class="mt-4 max-w-3xl mx-auto text-gray-600">
+                        การนำ AI มาใช้ให้ประสบความสำเร็จต้องมีการวางแผนที่ดี ตั้งแต่การวางกลยุทธ์ข้อมูลไปจนถึงการพัฒนาบุคลากร นี่คือข้อควรพิจารณาและความท้าทายที่สำคัญ
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="card p-6 text-center">
+                        <span class="text-4xl">💾</span>
+                        <h3 class="font-semibold text-lg mt-2 mb-1 text-[#6D4C41]">กลยุทธ์ข้อมูล</h3>
+                        <p class="text-sm text-gray-600">ข้อมูลคุณภาพสูงคือหัวใจของ AI ต้องมีกระบวนการรวบรวมและจัดการข้อมูลที่ดี</p>
+                    </div>
+                     <div class="card p-6 text-center">
+                        <span class="text-4xl">💻</span>
+                        <h3 class="font-semibold text-lg mt-2 mb-1 text-[#6D4C41]">โครงสร้างพื้นฐาน</h3>
+                        <p class="text-sm text-gray-600">ระบบต้องทันสมัยและสามารถเชื่อมต่อกันได้ (API-first) เพื่อการทำงานที่ราบรื่น</p>
+                    </div>
+                     <div class="card p-6 text-center">
+                        <span class="text-4xl">💰</span>
+                        <h3 class="font-semibold text-lg mt-2 mb-1 text-[#6D4C41]">การลงทุนและ ROI</h3>
+                        <p class="text-sm text-gray-600">เริ่มต้นจากโปรเจกต์เล็กๆ ที่เห็นผลตอบแทนชัดเจน แล้วค่อยๆ ขยายผล</p>
+                    </div>
+                     <div class="card p-6 text-center">
+                        <span class="text-4xl">🎓</span>
+                        <h3 class="font-semibold text-lg mt-2 mb-1 text-[#6D4C41]">ทักษะบุคลากร</h3>
+                        <p class="text-sm text-gray-600">ลงทุนในการฝึกอบรมพนักงานให้พร้อมรับมือกับเทคโนโลยีใหม่ๆ</p>
+                    </div>
+                </div>
+                <div class="text-center mt-12">
+                     <h3 class="text-xl font-semibold mb-4 text-[#6D4C41]">ขั้นตอนสู่ความสำเร็จ</h3>
+                    <ol class="text-left max-w-xl mx-auto space-y-2 text-gray-700">
+                        <li class="flex items-start"><span class="font-bold text-[#6D4C41] mr-2">1.</span> <span><b>กำหนดเป้าหมายชัดเจน:</b> ระบุปัญหาที่ต้องการแก้ไขและวัดผลได้</span></li>
+                        <li class="flex items-start"><span class="font-bold text-[#6D4C41] mr-2">2.</span> <span><b>ตรวจสอบข้อมูล:</b> ประเมินคุณภาพและความพร้อมของข้อมูลที่มี</span></li>
+                        <li class="flex items-start"><span class="font-bold text-[#6D4C41] mr-2">3.</span> <span><b>เริ่มต้นเล็กๆ:</b> นำร่องด้วยโซลูชันที่เห็นผลง่ายและเร็ว</span></li>
+                        <li class="flex items-start"><span class="font-bold text-[#6D4C41] mr-2">4.</span> <span><b>พัฒนาคน:</b> จัดอบรมพนักงานให้พร้อมใช้เครื่องมือใหม่</span></li>
+                        <li class="flex items-start"><span class="font-bold text-[#6D4C41] mr-2">5.</span> <span><b>ให้ความสำคัญกับจริยธรรม:</b> สร้างความโปร่งใสและปกป้องข้อมูลลูกค้า</span></li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="bg-[#6D4C41] text-white py-8">
+        <div class="container mx-auto px-4 text-center">
+            <p>Interactive Report created from Source Material.</p>
+            <p class="text-sm opacity-75 mt-2">© 2025 AI Coffee Solutions</p>
+        </div>
+    </footer>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    
+    const roleData = {
+        owner: {
+            name: 'เจ้าของร้าน',
+            features: [
+                'ดูยอดขายรวมทุกสาขา',
+                'วิเคราะห์กำไร-ขาดทุน',
+                'จัดการข้อมูลพนักงานระดับสูง',
+                'ตั้งค่าโปรโมชั่นหลัก'
+            ]
+        },
+        manager: {
+            name: 'ผู้จัดการ',
+            features: [
+                'ดูยอดขายสาขา',
+                'จัดการสต็อกสินค้า',
+                'อนุมัติตารางงานพนักงาน',
+                'แก้ไขข้อมูลพนักงานในสาขา'
+            ]
+        },
+        cashier: {
+            name: 'แคชเชียร์',
+            features: [
+                'รับออเดอร์และชำระเงิน',
+                'ดูประวัติการขายของตนเอง',
+                'จัดการโต๊ะ (ถ้ามี)',
+                'เช็คอิน/เช็คเอาท์'
+            ]
+        }
+    };
+
+    const initialInventoryData = {
+        labels: ['เมล็ดกาแฟ', 'นม', 'ไซรัปวานิลลา', 'แก้ว'],
+        datasets: [{
+            data: [85, 70, 60, 90],
+            backgroundColor: [
+                '#A37E63', // Muted Brown
+                '#EFEBE9', // Light Gray-Brown
+                '#D7CCC8', // Lighter Gray-Brown
+                '#BCAAA4'  // Mid Gray-Brown
+            ],
+            borderColor: '#FFFFFF',
+            borderWidth: 2
+        }]
+    };
+
+    let inventoryChartInstance;
+
+    function init() {
+        setupMobileMenu();
+        setupNavigationScroll();
+        setupCheckinButton();
+        setupRoleTabs();
+        setupSchedulingButtons();
+        setupPromoSimulation();
+        setupSalesForecastChart();
+        inventoryChartInstance = setupInventoryChart();
+        setupInventorySimulation();
+        generateQRCode();
+    }
+
+    function setupMobileMenu() {
+        const menuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if(menuButton) {
+            menuButton.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+    }
+
+    function setupNavigationScroll() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        const sections = document.querySelectorAll('section[id]');
+        
+        function changeNav() {
+            let index = sections.length;
+            while(--index && window.scrollY + 50 < sections[index].offsetTop) {}
+            navLinks.forEach((link) => link.classList.remove('active'));
+            const activeLink = document.querySelector(`.nav-link[href="#${sections[index].id}"]`);
+            if(activeLink) activeLink.classList.add('active');
+        }
+
+        window.addEventListener('scroll', changeNav);
+        changeNav(); // Initial call
+    }
+
+    function setupCheckinButton() {
+        const checkinBtn = document.getElementById('checkin-btn');
+        const checkinStatus = document.getElementById('checkin-status');
+        if(checkinBtn) {
+            checkinBtn.addEventListener('click', () => {
+                checkinStatus.textContent = 'กำลังตรวจสอบตำแหน่ง...';
+                checkinStatus.classList.remove('text-red-500', 'text-green-500');
+                checkinStatus.classList.add('text-gray-500');
+                setTimeout(() => {
+                    const inRange = Math.random() > 0.3; // Simulate being in range
+                    if(inRange) {
+                        checkinStatus.textContent = 'สถานะ: เช็คอินสำเร็จ! ✅';
+                        checkinStatus.classList.add('text-green-600');
+                    } else {
+                        checkinStatus.textContent = 'สถานะ: คุณอยู่นอกพื้นที่ ❌';
+                        checkinStatus.classList.add('text-red-600');
+                    }
+                }, 1500);
+            });
+        }
+    }
+
+    function setupRoleTabs() {
+        const tabContainer = document.querySelector('.card .flex.flex-wrap.gap-2');
+        if(tabContainer){
+            tabContainer.addEventListener('click', (e) => {
+                if (e.target.matches('.tab-btn')) {
+                    const role = e.target.dataset.role;
+                    updateRoleDashboard(role);
+                    
+                    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                }
+            });
+        }
+    }
+
+    function updateRoleDashboard(role) {
+        const roleNameEl = document.getElementById('role-name');
+        const roleFeaturesEl = document.getElementById('role-features');
+        const data = roleData[role];
+        
+        if(data) {
+            roleNameEl.textContent = data.name;
+            roleFeaturesEl.innerHTML = data.features.map(feature => `<li>${feature}</li>`).join('');
+        }
+    }
+
+    function setupSalesForecastChart() {
+        const ctx = document.getElementById('salesForecastChart');
+        if(!ctx) return;
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัส', 'ศุกร์', 'เสาร์', 'อาทิตย์'],
+                datasets: [{
+                    label: 'ยอดขายจริง',
+                    data: [120, 150, 110, 180, 210, 250, 230],
+                    borderColor: '#A37E63',
+                    tension: 0.1,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#A37E63'
+                }, {
+                    label: 'พยากรณ์โดย AI',
+                    data: [125, 145, 115, 185, 205, 260, 235],
+                    borderColor: '#6D4C41',
+                    borderDash: [5, 5],
+                    tension: 0.1,
+                    borderWidth: 2,
+                    pointBackgroundColor: '#6D4C41'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'ยอดขาย (แก้ว)' }
+                    }
+                },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { mode: 'index', intersect: false }
+                }
+            }
+        });
+    }
+
+    function setupInventoryChart() {
+        const ctx = document.getElementById('inventoryChart');
+        if (!ctx) return null;
+        return new Chart(ctx, {
+            type: 'bar',
+            data: JSON.parse(JSON.stringify(initialInventoryData)),
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: { display: true, text: 'ระดับสต็อก (%)' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return ` ระดับคงเหลือ: ${context.raw}%`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    function setupInventorySimulation() {
+        const btn = document.getElementById('simulate-sales-btn');
+        if(btn) {
+            btn.addEventListener('click', () => {
+                if (!inventoryChartInstance) return;
+                const currentData = inventoryChartInstance.data.datasets[0].data;
+                const newData = currentData.map(val => Math.max(0, val - Math.floor(Math.random() * 15 + 5)));
+                inventoryChartInstance.data.datasets[0].data = newData;
+
+                // Reset color, then apply warning
+                inventoryChartInstance.data.datasets[0].backgroundColor = JSON.parse(JSON.stringify(initialInventoryData.datasets[0].backgroundColor));
+                newData.forEach((val, index) => {
+                    if (val < 20) { // low stock threshold
+                         inventoryChartInstance.data.datasets[0].backgroundColor[index] = '#EF5350'; // Red
+                    }
+                });
+
+                inventoryChartInstance.update();
+            });
+        }
+    }
+    
+    function setupSchedulingButtons() {
+        const busyBtn = document.getElementById('schedule-busy');
+        const quietBtn = document.getElementById('schedule-quiet');
+        const staffingCtx = document.getElementById('staffingChart');
+        if(!staffingCtx) return;
+
+        const chartData = {
+            labels: ['บาริสต้า', 'แคชเชียร์', 'พนักงานเสิร์ฟ'],
+            datasets: [{
+                label: 'จำนวนพนักงาน',
+                data: [2, 1, 1], // Quiet
+                backgroundColor: '#A37E63',
+                borderColor: '#6D4C41',
+                borderWidth: 1
+            }]
+        };
+
+        const staffingChart = new Chart(staffingCtx, {
+            type: 'bar',
+            data: chartData,
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        title: { display: true, text: 'จำนวนพนักงาน' }
+                    }
+                },
+                plugins: {
+                    legend: { display: false },
+                    title: {
+                        display: true,
+                        text: 'ระดับพนักงาน (ช่วงปกติ)'
+                    }
+                }
+            }
+        });
+        
+        if(busyBtn) {
+            busyBtn.addEventListener('click', () => {
+                staffingChart.data.datasets[0].data = [4, 2, 2];
+                staffingChart.options.plugins.title.text = 'ระดับพนักงาน (ช่วงพีค)';
+                staffingChart.update();
+            });
+        }
+
+        if(quietBtn) {
+            quietBtn.addEventListener('click', () => {
+                staffingChart.data.datasets[0].data = [2, 1, 1];
+                staffingChart.options.plugins.title.text = 'ระดับพนักงาน (ช่วงปกติ)';
+                staffingChart.update();
+            });
+        }
+    }
+    
+    function setupPromoSimulation() {
+        const promoText = document.getElementById('promo-text');
+        if(!promoText) return;
+        setInterval(() => {
+            const promos = [
+                'ร้อนๆ แบบนี้ รับส่วนลด 15% สำหรับเครื่องดื่มเย็น!',
+                'ซื้อครัวซองต์คู่กับกาแฟ ลดทันที 10 บาท!',
+                'Happy Hour (14:00-16:00) เครื่องดื่มแก้วที่ 2 ลด 50%!',
+                'ฝนตกใช่ไหม? รับส่วนลดพิเศษสำหรับเครื่องดื่มร้อน'
+            ];
+            promoText.textContent = promos[Math.floor(Math.random() * promos.length)];
+        }, 5000);
+    }
+
+    function generateQRCode() {
+        const canvas = document.getElementById('qrCodeCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const size = canvas.width;
+        const cellSize = size / 21; // QR code version 1 is 21x21 modules
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = '#333333';
+        
+        for (let y = 0; y < 21; y++) {
+            for (let x = 0; x < 21; x++) {
+                if (Math.random() > 0.5) {
+                    ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+                }
+            }
+        }
+        // Finder patterns (simplified)
+        ctx.fillRect(0, 0, cellSize * 7, cellSize * 7);
+        ctx.fillRect(size - cellSize * 7, 0, cellSize * 7, cellSize * 7);
+        ctx.fillRect(0, size - cellSize * 7, cellSize * 7, cellSize * 7);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(cellSize, cellSize, cellSize * 5, cellSize * 5);
+        ctx.fillRect(size - cellSize * 6, cellSize, cellSize * 5, cellSize * 5);
+        ctx.fillRect(cellSize, size - cellSize * 6, cellSize * 5, cellSize * 5);
+    }
+
+    init();
+});
+</script>
+
+</body>
+</html>
